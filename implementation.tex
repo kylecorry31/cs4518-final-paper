@@ -1,1 +1,40 @@
 \section{Implementation}
+\subsection{Points}
+The following Android features are implemented in the app with their corresponding feature score based on the initial grading rubric.  They are discussed in further detail below.
+
+\begin {itemize}
+	\item >5 UI Screens (4 pts)
+	\item Location Sensing (4 pts)
+	\item Sending SMS (4 pts)
+	\item Maps (4 pts)
+	\item Custom Geofencing (6 pts)
+	\item Activity Recognition (6 pts)
+	\item Notifications
+	\item Android System Alarms
+\end {itemize}
+
+\subsection{UI}
+The UI components were all developed in Android studio with the standard drag and drop interface. 
+
+\subsection{Maps}
+The maps shown in the app use the usual Google Play implementation that we used previously in Lab 3. Nothing to special here, the location of the meeting is taken from the database and passed in to show the location on the map.
+
+\subsection{Database}
+At the core of the app is the SQLite database.  Our database holds all the alarms that the use has scheduled. The class for an alarm is AlarmObject and it holds the scheduled meeting time, the meeting location in latitude and longitude, the meeting name, the current warnings of when to leave issued for the alarm (to avoid spamming the user), and the list of phone numbers to send a late message to if necessary. We utilize custom cursors to give us seamless integration when querying the database. 
+
+\subsection{Notifications and SMS}
+Our notification system is implemented with a singleton pattern that registers itself when the operating system when it is instantiated. This pattern hides most of the low level details about how the notifications are setup and prevents multiple parts of the app from creating multiple copies of the notification system. The singleton exposes a shutdown method that deregisters the notification system from the OS. The singleton also exposes a single method “sendNotification(Context ctx, String title, String content)” that sends the user a notification with the specified title and content. Similarly the SMS portion of it exposes a method “sendSMS(String number, String message)” that simply sends an sms message to whatever the phone number is with the message contents of the parameter message.
+
+\subsection{Location and Geofencing}
+We track location with a similar singleton pattern as mentioned above for notifications. The singleton keeps track of the current location and exposes it via a method. To enable faster starting of location tracking when the app is restarted, the last known location is saved as a preference for the app. When the app receives the kill hook from the OS the current location is written into the preferences. When the app starts again, it checks to see if there was a last known location in preferences, and if there was uses that one as the initial location until the location service received an updated location. Custom Geofencing is implemented in the same class. Other components of the app can pass geofences in and when the user goes within the specified distance of the target, the location singleton sends a broadcast.
+
+\subsection{Activity Recognition}
+We use the Google Play API to get activity information. The activity information is also cached in the app preferences to enable faster start times to get a decent activity guess when the app is started. The activity recognition is done as a simple broadcast receiver since we don't really need to call any methods other than retrieving the static variable representing the last known activity.
+
+\subsection{ETA Calculation}
+Our ETA calculations are implemented with the strategy design pattern.  That pattern lets the user select the best estimator for them, whether it is a simple distance based estimator or one that uses machine learning to extract the average trip time and make a best guess for the user. Regardless of the implementation chosen, they all make an estimation of how long it will take to get from Location A to Location B at an activity level. Taking into account the current activity level helps provide accurate notifications on if the user will be late. Since people move faster when they run, bike or drive, those activities lower the estimated ETA; if a user is running late and starts running at a pace that will let them reach the meeting on time, the app won't send a notification to them or the others in the meeting that they are late. 
+
+The simplest time estimator, and often times the best, is a simple as-the-crow-flies estimator. It finds the linear distance between locations, then multiplies that with an experimentally derived constant to calculate the approximate upper bound for the distance.  Once that distance is known, the estimator divides that distance with rates determined by the current activity level to guess at the estimated arrival time.
+
+\subsection{Android Alarm System Scheduling}
+We use a relatively simple scheduling algorithm. Each alarm registers itself with the Android OS to receive a broadcast when that meeting is within the next 60 minutes. At that point the scheduling algorithm uses the ETA Calculation, Location, and Current Activity components to get an estimate of the estimated travel time from the current location. The scheduler will then schedule its next broadcast from the OS at the midpoint between the 5 minute warning point to leave for the meeting and the current time. This strategy allows the app to reliably cope with the user being in many locations and distances away before the meeting starts.  Once the estimated departure is within 7 minutes, the alarm schedules itself at 1 minute intervals to provide updates to the user. At 5 minutes and 1 minute before the calculated leave time, the app sends notifications to the user. If the user ignores these and misses the calculated leave time, the app prompts them to be on their way. If the user still doesn't leave within two minutes of that point, the app sends an SMS notification to the others at the meeting that the person will be late. If the user runs or bikes to make up time, the app lets them know they are back on track to make the meeting. This scheduling/notification structure works reasonably well without overwhelming the user with notifications 
