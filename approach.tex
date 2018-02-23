@@ -1,0 +1,16 @@
+\section{Approach/Methodology}
+
+\subsection{ETA System}
+To calculate the time to a given location, an ETA system was designed which used an approximate distance calculation to estimate the distance the user would have to travel, and the speed of the user to determine how long it would take them to arrive at the location. The distance calculation involved an 'as the crow flies' representation of the distance ~\cite{androidlocation} with a multiple of $\frac{\pi}{2}$ (see Equation~\ref{eq:distanceMultiplier}, which will give an approximate distance based on the sinusoidal properties of pathways to the destination ~\cite{numberphile2014pi} ~\cite{edwards2004crow} ~\cite{lembo2003crow}. This was done to conserve battery and privacy (as no network requests are needed) while giving a fast approximation of the distance to travel. The system will also learn from the user's current speed an activity to get a better estimation of how fast they typically walk, run, bike, or drive to their meetings. This is done using an exponential moving average with an alpha of 0.5 and storing the result in the SharedPreferences (see Equation~\ref{eq:ema})\footnote{The alpha of 0.5 was chosen based on the way operating systems predict burst time, and a reason for choosing an EMA was based on an article by Williams ~\cite{williams1998urban}} ~\cite{williams1998urban}. Using that speed and distance estimate, the time can be calculated by dividing the distance by the speed (see Equation~\ref{eq:time}). This will give an approximate travel time in seconds, which is then interpreted by higher level components of the application.
+
+\begin{equation}\label{eq:distanceMultiplier}
+	dist(x, y) = \frac{\pi}{2} straightLineDistance(x, y)
+\end{equation}
+
+\begin{equation}\label{eq:ema}
+	\tau_{n+1} = \alpha t_n + (1 - \alpha) \tau_n
+\end{equation}
+
+\begin{equation}\label{eq:time}
+	t = \frac{x}{v}
+\end{equation}
