@@ -7,8 +7,8 @@ The following Android features are implemented in the app with their correspondi
 	\item Location Sensing (4 pts)
 	\item Sending SMS (4 pts)
 	\item Maps (4 pts)
-	\item Custom Geofencing (6 pts)
 	\item Activity Recognition (6 pts)
+	\item Awareness: Weather (6 pts)
 	\item Notifications
 	\item Android System Alarms
 \end {itemize}
@@ -17,7 +17,7 @@ The following Android features are implemented in the app with their correspondi
 The UI components were all developed in Android studio with the standard drag and drop interface. 
 
 \subsection{Maps}
-The maps shown in the app use the usual Google Play implementation that we used previously in Lab 3. Nothing to special here, the location of the meeting is taken from the database and passed in to show the location on the map.
+The maps shown in the app use the usual Google Play implementation that we used previously in Lab 3. Nothing to special here, the location of the meeting is taken from the database and passed in to show the location on the map. The navigate tool is very simple too. It launches Google Maps to get the directions to where the user wants to go. It uses the current activity of the user to decide what type of directions Google Maps should use whether it’s biking, driving or walking.
 
 \subsection{Database}
 At the core of the app is the SQLite database.  Our database holds all the alarms that the use has scheduled. The class for an alarm is AlarmObject and it holds the scheduled meeting time, the meeting location in latitude and longitude, the meeting name, the current warnings of when to leave issued for the alarm (to avoid spamming the user), and the list of phone numbers to send a late message to if necessary. We utilize custom cursors to give us seamless integration when querying the database. 
@@ -25,8 +25,8 @@ At the core of the app is the SQLite database.  Our database holds all the alarm
 \subsection{Notifications and SMS}
 Our notification system is implemented with a singleton pattern that registers itself when the operating system when it is instantiated. This pattern hides most of the low level details about how the notifications are setup and prevents multiple parts of the app from creating multiple copies of the notification system. The singleton exposes a shutdown method that deregisters the notification system from the OS. The singleton also exposes a single method “sendNotification(Context ctx, String title, String content)” that sends the user a notification with the specified title and content. Similarly the SMS portion of it exposes a method “sendSMS(String number, String message)” that simply sends an sms message to whatever the phone number is with the message contents of the parameter message.
 
-\subsection{Location and Geofencing}
-We track location with a similar singleton pattern as mentioned above for notifications. The singleton keeps track of the current location and exposes it via a method. To enable faster starting of location tracking when the app is restarted, the last known location is saved as a preference for the app. When the app receives the kill hook from the OS the current location is written into the preferences. When the app starts again, it checks to see if there was a last known location in preferences, and if there was uses that one as the initial location until the location service received an updated location. Custom Geofencing is implemented in the same class. Other components of the app can pass geofences in and when the user goes within the specified distance of the target, the location singleton sends a broadcast.
+\subsection{Location}
+We track location with a similar singleton pattern as mentioned above for notifications. The singleton keeps track of the current location and exposes it via a method. To enable faster starting of location tracking when the app is restarted, the last known location is saved as a preference for the app. When the app receives the kill hook from the OS the current location is written into the preferences. When the app starts again, it checks to see if there was a last known location in preferences, and if there was uses that one as the initial location until the location service received an updated location.
 
 \subsection{Activity Recognition}
 We use the Google Play API to get activity information. The activity information is also cached in the app preferences to enable faster start times to get a decent activity guess when the app is started. The activity recognition is done as a simple intent service since we don't really need to call any methods other than retrieving the static variable representing the last known activity.
