@@ -14,10 +14,10 @@ The following Android features are implemented in the app with their correspondi
 \end {itemize}
 
 \subsection{UI}
-The UI components were all developed in Android studio with the standard drag and drop interface. 
+The UI components were all developed in Android studio with the standard drag and drop interface, with tuning done through direct manipulation of the XML source. 
 
 \subsection{Maps}
-The maps shown in the app use the usual Google Play implementation that we used previously in Lab 3. Nothing to special here, the location of the meeting is taken from the database and passed in to show the location on the map. To select a location for a meeting, a map is shown with a place marker in the center. The user can then navigate on the map to place the marker on the location of the meeting. The navigate tool is very simple too. It launches google maps to get the directions to where the user wants to go. It uses the current activity of the user to decide what type of directions google maps should use whether it’s biking, driving or walking.
+The maps shown in the app use the usual Google Play implementation, similar to what we used previously in Lab 3. The location of the meeting is taken from the database and passed in to show the location on the map. To select a location for a meeting, a map is shown with a place marker in the center. The user can then navigate on the map to place the marker on the location of the meeting. The navigate tool is very simple too. It uses an intent to launch Google Maps to get the directions to where the user wants to go. It uses the current activity of the user to decide what type of directions Google Maps should use whether it’s biking, driving or walking.
 
 \subsection{Database}
 At the core of the app is the SQLite database.  Our database holds all the alarms that the use has scheduled. The class for an alarm is AlarmObject and it holds the scheduled meeting time, the meeting location in latitude and longitude, the meeting name, the current warnings of when to leave issued for the alarm (to avoid spamming the user), and the list of phone numbers to send a late message to if necessary. We utilize custom cursors to give us seamless integration when querying the database. 
